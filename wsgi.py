@@ -10,7 +10,7 @@ from flask import Flask, redirect, request
 app = Flask(__name__)
 
 S3_ENDPOINT_URL = environ.get('S3_ENDPOINT_URL', None)
-S3_BUCKET_NAME = environ.get('S3_BUCKET_NAME', 'email_manager')
+S3_BUCKET_NAME = environ.get('S3_BUCKET_NAME', '')
 OP_SECRET = environ.get('OP_SECRET', '')
 OP_URL_PREFIX = environ.get('OP_URL_PREFIX', '')
 MATTERMOST_BOT_TOKEN = environ.get('MATTERMOST_BOT_TOKEN', '')
@@ -144,4 +144,4 @@ def create(token, secret, alias):
 
 
 if __name__ == '__main__':
-    app.run()
+    app.run(host="0.0.0.0")

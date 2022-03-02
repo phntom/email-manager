@@ -127,3 +127,7 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+/charts/email-manager/values.d/minthe.secret.yaml
+/charts/email-manager-*.tgz
+/charts/email-manager/charts/oauth2-proxy-3.2.7.tgz
