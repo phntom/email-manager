@@ -37,7 +37,7 @@ oauth2proxy:
     provider: facebook
     provider-display-name: kix.co.il chat
     redeem-url: https://kix.co.il/oauth/access_token
-    redirect-url: https://pwd.kix.co.il/oauth2/callback
+    redirect-url: https://email.kix.co.il/oauth2/callback
     # false is "true" for boolean variables
   ingress:
     enabled: true
