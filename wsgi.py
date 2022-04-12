@@ -45,10 +45,21 @@ def get_target_userid(email):
     return mm._get("/v4/users/email/" + email)['id']
 
 
-def send_message(user_id, message):
+def get_current_email(user_id):
+    return mm.get_user(user_id)['email']
+
+
+def send_message(user_id, message, actions=None):
     target_channel = mm.create_dm_channel_with(user_id)
-    props = {"from_webhook": "false"}
-    mm.create_post(channel_id=target_channel['id'], message=message, props=props)
+    if actions is None:
+        actions = ()
+    props = {
+        "from_webhook": "false",
+        "attachments": [{"actions": [action for action in actions]}],
+    }
+    mm.create_post(
+        channel_id=target_channel['id'], message=message, props=props
+    )
     team_name = mm.get_team(MATTERMOST_TEAM_ID)['name']
     return f"{MATTERMOST_ENDPOINT}/{team_name}/channels/{target_channel['name']}"
 
@@ -59,8 +70,13 @@ def add_to_my_team(user_id):
 
 @app.before_request
 def before_request_func():
-    if not request.headers.get('X-Auth-Request-Email', ''):
-        return "Request is not authorized"
+    if request.headers.get('X-Auth-Request-Email', ''):
+        return
+    if request.method == "POST":
+        data = request.json()
+        if "trigger_id" in data:
+            return
+    return "Request is not authorized"
 
 
 @app.route("/")
@@ -80,53 +96,66 @@ def match(token):
     email = request.headers['X-Auth-Request-Email']
     user_id = get_target_userid(email)
     if j.get('matched'):
-        return redirect(send_message(user_id, "Sorry, you've already used this link.\n"
-                                              "Contact ~help if you didn't."))
+        if user_id == j.get('user_id'):
+            return redirect(send_message(user_id, "This link was already matched to your account."))
+        else:
+            return redirect(send_message(user_id, "This link was used from another account, "
+                                                  "contact ~HELP to get this sorted."))
 
     add_to_my_team(user_id)
     alias = j['alias']
     j['matched'] = True
     j['user_id'] = user_id
     put_token(token, j)
+    url = f"{OP_URL_PREFIX}/send_email/{token}"
+    actions = [
+        {
+            "id": 'send_email',
+            "name": f'Send cloudflare verification email',
+            "integration": {
+                "url": url,
+                "context": {
+                    "token": token,
+                    "user_id": user_id,
+                }
+            }
+        },
+    ]
     return redirect(send_message(
         user_id,
         f"I've matched {alias}@nix.co.il with your account.\n"
-        f"Next, click [here]({OP_URL_PREFIX}/send_email/{token}) to get a cloudflare validation email.\n"
-        f"You must validate your email with cloudflare in order to continue receiving email starting April 2022.\n"
-        f"You may still change your email address before the validation, and you can reuse this link in the future."
+        f"Next, click the button at the bottom of this message to get a verification email from cloudflare.\n"
+        f"You will only be sent a single email per address. You must complete verification to receive emails.",
+        actions=actions
     ))
 
 
-@app.route('/send_email/<string:token>')
+@app.route('/send_email/<string:token>', methods=['GET', 'POST'])
 def send(token):
     j = get_token(token)
-    email = request.headers['X-Auth-Request-Email']
-    user_id = get_target_userid(email)
-    if j.get('validated') == email:
-        return redirect(send_message(
-            user_id,
-            f"Your current email address is already validated."
-        ))
+    user_id = j.get('user_id')
     # noinspection PyBroadException
     try:
+        email = get_current_email(user_id)
         cf = CloudFlare(email=CLOUDFLARE_EMAIL, token=CLOUDFLARE_TOKEN)
         cf.add('VOID', "accounts", "email-fwdr")
         cf.add('AUTH', "accounts", "email-fwdr", "addresses")
-        data = json.dumps({"email": email})
         # noinspection PyUnresolvedReferences
-        cf.accounts.email_fwdr.addresses.post(CLOUDFLARE_ACCOUNT, data=data)
+        cf.accounts.email_fwdr.addresses.post(CLOUDFLARE_ACCOUNT, data=json.dumps({"email": email}))
         j['validated'] = email
         put_token(token, j)
-        return redirect(send_message(
-            user_id,
-            f"An email from cloudflare should be sent to your email momentarily. Thanks!"
-        ))
+        return json.dumps({
+            "update": {
+                "message": "An email from Cloudflare was dispatched (once) to your email address, "
+                           "please complete the process.",
+                "props": {}
+            },
+        })
     except:
-        redirect(send_message(
-            user_id,
-            f"There was an error creating the validation request with cloudflare.\n"
-            f"If this issue persists please report to ~help"
-        ))
+        return json.dumps({
+            "ephemeral_text": "There was an error creating the validation request with cloudflare. "
+                              "Please contact ~HELP to get this resolved.",
+        })
 
 
 @app.route('/create_token/<string:token>/<string:secret>/<string:alias>')
@@ -140,7 +169,7 @@ def create(token, secret, alias):
         'alias': alias,
     }
     put_token(token, j)
-    return f"{OP_URL_PREFIX}/match_email/{token}"
+    return token
 
 
 if __name__ == '__main__':

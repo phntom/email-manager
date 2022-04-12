@@ -1,4 +1,4 @@
-boto3~=1.21.10
-Flask~=2.0.3
-cloudflare~=2.8.15
-mattermost~=6.1.0
+boto3==1.21.38
+Flask==2.1.1
+cloudflare==2.9.10
+mattermost==6.5.0
