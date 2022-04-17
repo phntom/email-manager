@@ -38,7 +38,10 @@ def send_message(driver: Driver, user_id, message, actions=None):
 
 
 def add_to_my_team(driver: Driver, user_id):
-    driver.teams.add_user_to_team(team_id=MATTERMOST_TEAM_ID, user_id=user_id)
+    driver.teams.add_user_to_team(team_id=MATTERMOST_TEAM_ID, options={
+        "team_id": MATTERMOST_TEAM_ID,
+        "user_id": user_id,
+    })
 
 
 def health(_):

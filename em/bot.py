@@ -1,6 +1,6 @@
 from aiohttp import web
 from botocore.exceptions import ClientError
-from mmpy_bot import Plugin, listen_webhook, WebHookEvent, Bot
+from mmpy_bot import Plugin, listen_webhook, WebHookEvent, Bot, ActionEvent
 
 from em.cloudflare import cf_send_validation
 from em.mmapi import get_target_userid, send_message, add_to_my_team, get_current_email
@@ -59,13 +59,13 @@ class EmailManagerBot(Plugin):
 
     @listen_webhook("send_email")
     async def send_email(self, event: WebHookEvent):
-        token = event.props.get('token')
-        if not token:
-            return web.Response(status=401, reason="Unauthorized", body="Request is not authorized")
-        j = get_token(token)
-        user_id = j.get('user_id')
+        if not isinstance(event, ActionEvent):
+            return
         # noinspection PyBroadException
         try:
+            token = event.context['token']
+            j = get_token(token)
+            user_id = j.get('user_id')
             email = get_current_email(self.driver, user_id)
             cf_send_validation(email)
             j['validated'] = email
