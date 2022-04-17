@@ -20,6 +20,8 @@ config:
     token: xxx
     account: xxx
     email: xxx
+    zone_ids:
+      - xxx.com=yyy
   web:
     url: email.kix.co.il
     secret: xxx
