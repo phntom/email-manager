@@ -1,4 +1,4 @@
-# Default values for email-manager.
+# Default values for em.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
@@ -13,6 +13,9 @@ config:
   mattermost:
     token: xxx
     team: xxx
+    url: http://mattermost-team-edition.chat.svc
+    port: 8065
+    external: https://kix.co.il
   cloudflare:
     token: xxx
     account: xxx
@@ -20,6 +23,7 @@ config:
   web:
     url: email.kix.co.il
     secret: xxx
+    debug: false
 
 oauth2proxy:
   enable: true
@@ -97,6 +101,7 @@ securityContext: {}
 service:
   type: ClusterIP
   port: 80
+  containerPort: 8579
 
 resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious

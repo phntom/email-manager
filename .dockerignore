@@ -155,5 +155,3 @@ dmypy.json
 .pytype/
 cython_debug/
 *.secret.yaml
-/charts/*.tgz
-/charts/email-manager/charts/*.tgz

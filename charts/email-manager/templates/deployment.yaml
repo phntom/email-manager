@@ -35,27 +35,30 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - name: http
-              containerPort: 5000
+              containerPort: {{ .Values.service.containerPort }}
               protocol: TCP
           livenessProbe:
             httpGet:
-              path: /health
+              path: /_healthz
               port: http
-              httpHeaders:
-                - name: X-Auth-Request-Email
-                  value: health@
           readinessProbe:
             httpGet:
-              path: /health
+              path: /_healthz
               port: http
-              httpHeaders:
-                - name: X-Auth-Request-Email
-                  value: health@
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           envFrom:
             - secretRef:
                 name: {{ include "email-manager.fullname" . }}
+          env:
+            - name: WEBHOOK_HOST_ENABLED
+              value: "true"
+            - name: WEBHOOK_HOST_PORT
+              value: {{ .Values.service.containerPort | quote }}
+            - name: WEBHOOK_HOST_URL
+              value: http://0.0.0.0
+            - name: DEBUG
+              value: {{ .Values.config.web.debug | quote }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
