@@ -1,5 +1,3 @@
-import asyncio
-
 from aiohttp import web
 from botocore.exceptions import ClientError
 from mmpy_bot import Plugin, listen_webhook, WebHookEvent, Bot
@@ -23,15 +21,15 @@ class EmailManagerBot(Plugin):
         except ClientError:
             return web.Response(status=500, reason="Server Error", body="Invalid token")
         email = request.headers['X-Auth-Request-Email']
-        user_id = get_target_userid(email)
+        user_id = get_target_userid(self.driver, email)
         if j.get('matched'):
             if user_id == j.get('user_id'):
-                return redirect(send_message(user_id, "This link was already matched to your account."))
+                return redirect(send_message(self.driver, user_id, "This link was already matched to your account."))
             else:
-                return redirect(send_message(user_id, "This link was used from another account, "
-                                                      "contact ~HELP to get this sorted."))
+                return redirect(send_message(self.driver, user_id, "This link was used from another account, "
+                                                                   "contact ~HELP to get this sorted."))
 
-        add_to_my_team(user_id)
+        add_to_my_team(self.driver, user_id)
         alias = j['alias']
         j['matched'] = True
         j['user_id'] = user_id
@@ -39,8 +37,8 @@ class EmailManagerBot(Plugin):
         url = f"{OP_URL_PREFIX}/hooks/send_email"
         actions = [
             {
-                "id": 'send_email',
-                "name": f'Send cloudflare verification email',
+                "id": 'hooks',
+                "name": 'Send cloudflare verification email',
                 "integration": {
                     "url": url,
                     "context": {
@@ -51,6 +49,7 @@ class EmailManagerBot(Plugin):
             },
         ]
         return redirect(send_message(
+            self.driver,
             user_id,
             f"I've matched {alias}@nix.co.il with your account.\n"
             f"Next, click the button at the bottom of this message to get a verification email from cloudflare.\n"
@@ -67,7 +66,7 @@ class EmailManagerBot(Plugin):
         user_id = j.get('user_id')
         # noinspection PyBroadException
         try:
-            email = get_current_email(user_id)
+            email = get_current_email(self.driver, user_id)
             cf_send_validation(email)
             j['validated'] = email
             put_token(token, j)
@@ -91,6 +90,5 @@ class EmailManagerBot(Plugin):
             )
 
 
-bot = setup_routes(Bot(plugins=[EmailManagerBot()]))
-
-tasks = [asyncio.get_event_loop().create_task(bot.run())]
+def get_bot():
+    return setup_routes(Bot(plugins=[EmailManagerBot()]))

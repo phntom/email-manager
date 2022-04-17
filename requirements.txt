@@ -1,4 +1,3 @@
 boto3==1.21.38
 cloudflare==2.9.10
-mattermost==6.5.0
 mmpy-bot==2.0.2
