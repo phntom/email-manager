@@ -1,4 +1,4 @@
-#!/usr/bin/env -vS docker build --pull -t phntom/email-manager:0.1.14 . -f
+#!/usr/bin/env -vS docker build --pull -t phntom/email-manager:0.1.15 . -f
 
 FROM python:3.10
 WORKDIR /app

@@ -2,7 +2,8 @@ from aiohttp import web
 from botocore.exceptions import ClientError
 from mmpy_bot import Plugin, listen_webhook, WebHookEvent, Bot, ActionEvent, listen_to, Message
 
-from em.cloudflare import cf_send_validation, cf_check_validation, cf_create_email_forward, CLOUDFLARE_ZONE_ID
+from em.cloudflare import cf_send_validation, cf_check_validation, cf_create_email_forward, CLOUDFLARE_ZONE_ID, \
+    cf_get_all_rules
 from em.mmapi import get_target_userid, send_message, add_to_my_team, get_current_email
 from em.routes import setup_routes, redirect, OP_URL_PREFIX
 from em.s3 import get_token, put_token
@@ -27,6 +28,10 @@ class EmailManagerBot(Plugin):
         domain = source_email.split('@')[1]
         if domain not in CLOUDFLARE_ZONE_ID:
             return self.driver.reply_to(message, f"domain {domain} not registered in bot")
+        rules_cache = cf_get_all_rules()
+        if source_email in rules_cache[domain]:
+            target = rules_cache[domain][source_email]
+            return self.driver.reply_to(message, f"email {source_email} already forwarded to {target}")
         await self.send_message_verify_or_done(source_email, target_email, target_id)
 
     async def match(self, request):
@@ -175,7 +180,6 @@ class EmailManagerBot(Plugin):
             )
         else:
             return send_message(self.driver, user_id, message)
-
 
 
 def get_bot():
