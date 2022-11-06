@@ -40,6 +40,7 @@ oauth2proxy:
     set-authorization-header: false
     login-url: https://kix.co.il/oauth/authorize
     profile-url: https://kix.co.il/api/v4/users/me
+    validate-url: https://kix.co.il/api/v4/users/me
     provider: facebook
     provider-display-name: kix.co.il chat
     redeem-url: https://kix.co.il/oauth/access_token
@@ -54,9 +55,8 @@ oauth2proxy:
 image:
   repository: phntom/email-manager
   pullPolicy: IfNotPresent
-  # Overrides the image tag whose default is the chart appVersion.
-  tag: ""
-
+  tag: "0.1.21"
+  digest: sha256:ceeaf30eb66d8b034ebf0b12d5be4dec2956f72277a7f8966f2f5a229db6d5fe
 
 ingress:
   enabled: true

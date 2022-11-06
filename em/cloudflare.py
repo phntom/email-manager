@@ -18,7 +18,7 @@ cf_rules_last_updated = datetime.utcfromtimestamp(0)
 
 def cf_send_validation(email):
     data = json.dumps({"email": email})
-    cf.accounts.email_fwdr.addresses.post(CLOUDFLARE_ACCOUNT, data=data)
+    cf.accounts.email.routing.addresses.post(CLOUDFLARE_ACCOUNT, data=data)
 
 
 def cf_get_all_verifications():
@@ -29,7 +29,7 @@ def cf_get_all_verifications():
             'verified': set(),
             'unverified': set(),
         }
-        for line in cf.accounts.email_fwdr.addresses.get(CLOUDFLARE_ACCOUNT):
+        for line in cf.accounts.email.routing.addresses.get(CLOUDFLARE_ACCOUNT):
             if line['verified'] is None:
                 verification_cache['unverified'].add(line['email'])
             else:
@@ -44,7 +44,7 @@ def cf_get_all_rules():
         rules_cache = {}
         for domain, zone_id in CLOUDFLARE_ZONE_ID.items():
             d = rules_cache[domain] = {}
-            for line in cf.zones.email_fwdr.rules.get(zone_id):
+            for line in cf.zones.email.routing.rules.get(zone_id):
                 for action in line['actions']:
                     if action['type'] == 'forward':
                         for matcher in line['matchers']:
@@ -87,4 +87,4 @@ def cf_create_email_forward(source, target):
             ]
         }
     )
-    cf.zones.email_fwdr.rules.post(zone_id, data=data)
+    cf.zones.email.routing.rules.post(zone_id, data=data)

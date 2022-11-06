@@ -19,5 +19,5 @@ def setup_routes(bot):
     app = bot.webhook_server.app
     app.router.add_route('GET', '/_healthz', health)
     app.router.add_route('GET', '/', root)
-    app.router.add_route('GET', r'/match_email/{token:[a-z0-9]+}', bot.plugins[0].match)
+    app.router.add_route('GET', r'/match_email/{token:[a-z0-9]+}', bot.plugin_manager.plugins[0].match)
     return bot

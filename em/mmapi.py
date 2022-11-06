@@ -16,7 +16,7 @@ def get_current_email(driver: Driver, user_id: str):
 
 
 def send_message(driver: Driver, user_id, message, actions=None):
-    target_channel = driver.channels.create_direct_message_channel([driver.user_id, user_id])
+    target_channel = driver.channels.create_direct_channel([driver.user_id, user_id])
     props = {
         "from_webhook": "false",
     }
