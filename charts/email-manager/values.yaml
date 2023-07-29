@@ -55,8 +55,8 @@ oauth2proxy:
 image:
   repository: phntom/email-manager
   pullPolicy: IfNotPresent
-  tag: "0.1.21"
-  digest: sha256:ceeaf30eb66d8b034ebf0b12d5be4dec2956f72277a7f8966f2f5a229db6d5fe
+  tag: "0.1.23"
+  digest: sha256:b0ccd2cea11abd0e90515fa6185b43bc8e04057d05763bf38012018474eb1e35
 
 ingress:
   enabled: true
@@ -105,17 +105,13 @@ service:
   port: 80
   containerPort: 8579
 
-resources: {}
-  # We usually recommend not to specify default resources and to leave this as a conscious
-  # choice for the user. This also increases chances charts run on environments with little
-  # resources, such as Minikube. If you do want to specify resources, uncomment the following
-  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
-  # limits:
-  #   cpu: 100m
-  #   memory: 128Mi
-  # requests:
-  #   cpu: 100m
-  #   memory: 128Mi
+resources:
+  limits:
+    cpu: 35m
+    memory: 340Mi
+  requests:
+    cpu: 35m
+    memory: 50Mi
 
 autoscaling:
   enabled: false
