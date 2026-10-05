@@ -107,11 +107,11 @@ service:
 
 resources:
   limits:
-    cpu: 35m
+    cpu: 500m
     memory: 340Mi
   requests:
-    cpu: 35m
-    memory: 50Mi
+    cpu: 100m
+    memory: 64Mi
 
 autoscaling:
   enabled: false
